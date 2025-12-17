@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fivem - rebaixado seu carro</title>
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
+<style>
+  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:#e5e7eb}
+  .container{max-width:800px;margin:40px auto;padding:20px}
+  .card{background:#020617;border-radius:10px;padding:20px}
+  h1{text-align:center}
+  label{display:block;margin-top:12px}
+  input,button{width:100%;margin-top:6px}
+  button{padding:12px;background:#6366f1;border:0;border-radius:8px;color:#fff;font-size:16px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <h1>Editor MP3 (Grave Real)</h1>
+
+    <input type="file" id="fileInput" accept="audio/mp3">
+
+    <audio id="audio" controls></audio>
+
+    <label>Grave (Bass)</label>
+    <input type="range" id="bass" min="-30" max="30" value="0">
+
+    <label>Volume Final</label>
+    <input type="range" id="volume" min="0.5" max="2" step="0.01" value="1">
+
+    <button id="exportBtn">Exportar MP3 com Grave</button>
+
+    <p id="status"></p>
+  </div>
+</div>
+
+<script>
+const { FFmpeg } = FFmpegWASM;
+const ffmpeg = new FFmpeg();
+
+const fileInput = document.getElementById('fileInput');
+const audio = document.getElementById('audio');
+const bass = document.getElementById('bass');
+const volume = document.getElementById('volume');
+const exportBtn = document.getElementById('exportBtn');
+const status = document.getElementById('status');
+
+let file;
+
+fileInput.onchange = () => {
+  file = fileInput.files[0];
+  if(!file) return;
+  audio.src = URL.createObjectURL(file);
+  audio.load();
+};
+
+exportBtn.onclick = async () => {
+  if(!file){ alert('Envie um MP3 primeiro'); return; }
+
+  const nome = prompt('Nome do MP3 (sem .mp3)');
+  if(!nome) return;
+
+  status.innerText = 'Carregando FFmpeg (pode demorar na primeira vez)...';
+
+  if(!ffmpeg.loaded){
+    await ffmpeg.load({
+      coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/ffmpeg-core.js'
+    });
+  }
+
+  status.innerText = 'Processando áudio...';
+
+  const buffer = await file.arrayBuffer();
+  await ffmpeg.writeFile('input.mp3', new Uint8Array(buffer));
+
+  const filtro = `bass=g=${bass.value},volume=${volume.value}`;
+
+  await ffmpeg.exec(['-i','input.mp3','-af',filtro,'output.mp3']);
+
+  const data = await ffmpeg.readFile('output.mp3');
+  const blob = new Blob([data.buffer], { type:'audio/mp3' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome + '.mp3';
+  a.click();
+
+  status.innerText = 'MP3 exportado com sucesso.';
+};
+</script>
+</body>
+</html>
