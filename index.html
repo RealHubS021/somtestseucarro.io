@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fivem - rebaixado seu carro</title>
+<title>Editor MP3 com Grave (Exporta de Verdade)</title>
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/ffmpeg.min.js"></script>
 <style>
   body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0f172a;color:#e5e7eb}
@@ -20,7 +20,7 @@
   <div class="card">
     <h1>Editor MP3 (Grave Real)</h1>
 
-    <input type="file" id="fileInput" accept="audio/mp3">
+    <input type="file" id="fileInput" accept="audio/*">
 
     <audio id="audio" controls></audio>
 
@@ -51,9 +51,12 @@ let file;
 
 fileInput.onchange = () => {
   file = fileInput.files[0];
-  if(!file) return;
-  audio.src = URL.createObjectURL(file);
-  audio.load();
+  if(!file){ status.innerText = 'Arquivo inválido'; return; }
+  const url = URL.createObjectURL(file);
+  audio.src = url;
+  audio.muted = false;
+  audio.play().catch(()=>{
+    status.innerText = 'Clique em Play para liberar o áudio';
 };
 
 exportBtn.onclick = async () => {
