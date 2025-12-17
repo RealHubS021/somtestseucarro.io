@@ -57,6 +57,8 @@ fileInput.onchange = () => {
   audio.muted = false;
   audio.play().catch(()=>{
     status.innerText = 'Clique em Play para liberar o áudio';
+  });
+}
 };
 
 exportBtn.onclick = async () => {
